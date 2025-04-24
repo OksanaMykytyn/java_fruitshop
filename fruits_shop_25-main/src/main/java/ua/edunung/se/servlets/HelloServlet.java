@@ -4,6 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,11 +19,27 @@ import java.util.Map;
 
 @WebServlet("/hello")
 public class HelloServlet extends HttpServlet {
+    private Configuration cfg;
+
+    @Override
+    public void init() {
+        ServletContext context = getServletContext();
+        try {
+            cfg = FreeMarkerConfig.getConfig(context);
+        } catch (IOException e) {
+            throw new RuntimeException("Помилка ініціалізації FreeMarker", e);
+        }
+    }
+
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Map<String, Object> model = new HashMap<>();
+        model.put("contextPath", req.getContextPath());
+
         resp.setContentType("text/html; charset=UTF-8");
 
-        // ✅ Передаємо ServletContext у FreeMarkerConfig
+        // Передаємо ServletContext у FreeMarkerConfig
         Configuration cfg = FreeMarkerConfig.getConfig(getServletContext());
 
         try {
@@ -30,7 +47,6 @@ public class HelloServlet extends HttpServlet {
             Template template = cfg.getTemplate("hello.ftl");
 
             // Дані для шаблону
-            Map<String, Object> model = new HashMap<>();
             model.put("message", "Привіт із FreeMarker! Група ІП-22-1 Микитин Оксана");
 
             // Рендеримо шаблон у відповідь

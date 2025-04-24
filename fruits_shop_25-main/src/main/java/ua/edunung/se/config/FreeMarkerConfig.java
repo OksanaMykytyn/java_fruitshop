@@ -13,7 +13,7 @@ public class FreeMarkerConfig {
         if (cfg == null) {
             cfg = new Configuration(Configuration.VERSION_2_3_31);
 
-            // 🔹 Встановлюємо правильний шлях до шаблонів
+            // Встановлюємо правильний шлях до шаблонів
             String templatePath = servletContext.getRealPath("/WEB-INF/templates/");
             System.out.println("FreeMarker templates path: " + templatePath);
 
