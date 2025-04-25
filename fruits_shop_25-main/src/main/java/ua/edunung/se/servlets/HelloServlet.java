@@ -3,51 +3,51 @@ package ua.edunung.se.servlets;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import ua.edunung.se.config.FreeMarkerConfig;
+import ua.edunung.se.config.HibernateUtil;
+import ua.edunung.se.entity.Fruit;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@WebServlet("/hello")
+@WebServlet("/index")
 public class HelloServlet extends HttpServlet {
-    private Configuration cfg;
-
-    @Override
-    public void init() {
-        ServletContext context = getServletContext();
-        try {
-            cfg = FreeMarkerConfig.getConfig(context);
-        } catch (IOException e) {
-            throw new RuntimeException("Помилка ініціалізації FreeMarker", e);
-        }
-    }
-
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Передаємо ServletContext у FreeMarkerConfig
+        Configuration cfg = FreeMarkerConfig.getConfig(getServletContext());
         Map<String, Object> model = new HashMap<>();
+
+        // Отримуємо список фруктів із бази
+        List<Fruit> fruits;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Query<Fruit> query = session.createQuery("FROM Fruit", Fruit.class);
+            fruits = query.list();
+        }
+        model.put("fruits", fruits);
         model.put("contextPath", req.getContextPath());
 
         resp.setContentType("text/html; charset=UTF-8");
-
-        // Передаємо ServletContext у FreeMarkerConfig
-        Configuration cfg = FreeMarkerConfig.getConfig(getServletContext());
 
         try {
             // Завантажуємо шаблон
             Template template = cfg.getTemplate("hello.ftl");
 
             // Дані для шаблону
-            model.put("message", "Привіт із FreeMarker! Група ІП-22-1 Микитин Оксана");
+            model.put("message", "Магазинчик Микитин Оксани з групи ІП-22-1");
 
             // Рендеримо шаблон у відповідь
             try (Writer out = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
